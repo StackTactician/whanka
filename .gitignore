@@ -1,0 +1,6 @@
+pardon
+pardon.exe
+*.o
+*.obj
+*.exe
+.claude/
