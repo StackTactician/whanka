@@ -1,0 +1,24 @@
+enough foreplay
+
+moan x is 10
+if x hotter than 5 and x colder than 20
+    yell "x is between 5 and 20"
+boundaries respected.
+
+if x colder than 5 or x hotter than 8
+    yell "x is outside 5 or above 8"
+boundaries respected.
+
+moan y is 0
+if not y is frigid
+    yell "BUG: should not print"
+hard limit:
+    yell "y is frigid, not inverted correctly"
+boundaries respected.
+
+moan z is 5
+if not z is frigid
+    yell "z is not frigid"
+boundaries respected.
+
+I came.

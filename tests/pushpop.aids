@@ -1,0 +1,29 @@
+enough foreplay
+
+// Dynamic array with push/pop
+stash stack with 0 slots
+shove 10 into stack
+shove 20 into stack
+shove 30 into stack
+yell body count of stack
+
+// Pop last element
+moan top is yank from stack
+yell top
+yell body count of stack
+
+// Pop another
+moan second is yank from stack
+yell second
+
+// Push more
+shove 99 into stack
+shove 88 into stack
+yell body count of stack
+
+// Show contents
+run a train on stack
+  yell each
+done.
+
+I came.

@@ -1,5 +1,5 @@
-#ifndef PARDON_INTERPRETER_H
-#define PARDON_INTERPRETER_H
+#ifndef WHANKA_INTERPRETER_H
+#define WHANKA_INTERPRETER_H
 
 #include "parser.h"
 #include "env.h"

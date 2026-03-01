@@ -1,4 +1,4 @@
-# Pardon
+# Whanka
 
 A Turing-complete esoteric programming language with passive-aggressive, sexually-charged, crime-themed English-like syntax.
 
@@ -12,7 +12,7 @@ Written in C. No dependencies. Single binary.
 build.bat          # Windows
 
 # Run
-pardon hello.aids
+whanka hello.aids
 ```
 
 ## Hello World
@@ -70,7 +70,7 @@ make
 ./build.sh
 
 # Manual
-gcc -Wall -Wextra -std=c11 -O2 -o pardon src/*.c -lm
+gcc -Wall -Wextra -std=c11 -O2 -o whanka src/*.c -lm
 ```
 
 ## Documentation
@@ -79,7 +79,7 @@ See [DOCS.md](DOCS.md) for the full language reference.
 
 ## File Extension
 
-All Pardon source files use the `.aids` extension.
+All Whanka source files use the `.aids` extension.
 
 ## License
 

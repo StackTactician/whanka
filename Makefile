@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c11 -O2
-LDFLAGS = -lm
+CFLAGS = -Wall -Wextra -std=c11 -O2 -fstack-protector-strong -D_FORTIFY_SOURCE=2 -fPIE -Wformat -Wformat-security
+LDFLAGS = -lm -pie
 
 SRCDIR = src
 SOURCES = $(SRCDIR)/main.c \
@@ -11,7 +11,7 @@ SOURCES = $(SRCDIR)/main.c \
           $(SRCDIR)/env.c \
           $(SRCDIR)/error.c
 
-TARGET = pardon
+TARGET = whanka
 
 all: $(TARGET)
 

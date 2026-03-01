@@ -1,0 +1,15 @@
+enough foreplay
+
+// Write to file
+dump "hello from whanka!" into "tests/_test_output.txt"
+
+// Read it back
+devour "tests/_test_output.txt" into content
+yell content
+
+// Overwrite with new content
+dump "updated content" into "tests/_test_output.txt"
+devour "tests/_test_output.txt" into content2
+yell content2
+
+I came.

@@ -1,0 +1,29 @@
+enough foreplay
+
+// String indexing
+moan s is "hello"
+yell grab s at 0
+yell grab s at 4
+
+// String length
+yell body count of s
+
+// Split and join
+moan csv is "a,b,c"
+stash parts with chop csv by ","
+yell grab parts at 0
+yell grab parts at 1
+yell grab parts at 2
+yell body count of parts
+
+// Join
+moan joined is stitch parts with "-"
+yell joined
+
+// Split by empty string
+stash chars with chop "hi" by ""
+yell body count of chars
+yell grab chars at 0
+yell grab chars at 1
+
+I came.

@@ -2,12 +2,12 @@
 set -e
 
 CC="${CC:-gcc}"
-CFLAGS="-Wall -Wextra -std=c11 -O2"
-LDFLAGS="-lm"
+CFLAGS="-Wall -Wextra -std=c11 -O2 -fstack-protector-strong -D_FORTIFY_SOURCE=2 -fPIE -Wformat -Wformat-security"
+LDFLAGS="-lm -pie"
 SRC="src/main.c src/lexer.c src/parser.c src/interpreter.c src/value.c src/env.c src/error.c"
-OUT="pardon"
+OUT="whanka"
 
-echo "Building Pardon language interpreter..."
+echo "Building Whanka language interpreter..."
 echo "Compiler: $CC"
 
 $CC $CFLAGS -o "$OUT" $SRC $LDFLAGS
@@ -60,4 +60,4 @@ case ":$PATH:" in
 esac
 
 echo ""
-echo "Done. Run from anywhere: pardon <file.aids>"
+echo "Done. Run from anywhere: whanka <file.aids>"

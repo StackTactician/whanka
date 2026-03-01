@@ -1,0 +1,18 @@
+enough foreplay
+
+// Test 1: backward compat — busted when x hits 5 (x >= 5)
+moan x is 0
+go on a spree:
+    yell x
+    x gets x jacked up by 1
+busted when x hits 5
+
+// Test 2: general condition — busted when x hotter than 10
+moan y is 0
+go on a spree:
+    y gets y jacked up by 3
+busted when y hotter than 10
+
+yell y
+
+I came.

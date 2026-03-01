@@ -1,8 +1,8 @@
-# Pardon Language Reference
+# Whanka Language Reference
 
 ## Program Structure
 
-Every Pardon program must begin with `enough foreplay` and end with `I came.` followed by `regards.`
+Every Whanka program must begin with `enough foreplay` and end with `I came.` followed by `regards.`
 
 ```
 enough foreplay
@@ -309,7 +309,7 @@ yell x
 
 ## Error Messages
 
-When you screw up, Pardon tells you about it:
+When you screw up, Whanka tells you about it:
 
 | Situation | Error |
 |---|---|

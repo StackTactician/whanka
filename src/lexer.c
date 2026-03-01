@@ -15,11 +15,21 @@ typedef struct {
 static const Keyword keywords[] = {
     /* Multi-word keywords — longest first */
     {"seduce the answer out of", TOK_SEDUCE},
+    {"the absolute value of",   TOK_ABS},
     {"consents to being",       TOK_CONSENTS},
+    {"the square root of",      TOK_SQRT},
     {"boundaries respected.",    TOK_BOUNDARIES},
+    {"to the power of",         TOK_POW},
     {"go on a spree:",          TOK_SPREE_START},
+    {"run a train on",          TOK_RUN_A_TRAIN_ON},
     {"enough foreplay",         TOK_PROGRAM_START},
+    {"the ceiling of",          TOK_CEIL},
     {"get freaky with",         TOK_GET_FREAKY},
+    {"the number in",           TOK_TO_NUM},
+    {"roll the dice",           TOK_ROLL_THE_DICE},
+    {"body count of",           TOK_BODY_COUNT_OF},
+    {"the floor of",            TOK_FLOOR},
+    {"the word for",            TOK_TO_STR},
     {"and it takes",            TOK_AND_IT_TAKES},
     {"jacked up by",            TOK_JACKED_UP_BY},
     {"blown up by",             TOK_BLOWN_UP_BY},
@@ -38,20 +48,38 @@ static const Keyword keywords[] = {
     {"safe word.",              TOK_SAFE_WORD},
     {"is frigid",               TOK_IS_FRIGID},
     {"I came.",                 TOK_PROGRAM_END},
+    {"entries",                 TOK_ENTRIES},
     {"oh god",                  TOK_OH_GOD},
     {"regards.",                TOK_REGARDS},
+    {"devour",                  TOK_DEVOUR},
+    {"stitch",                  TOK_STITCH},
     {"harder",                  TOK_HARDER},
     {"scream",                  TOK_SCREAM},
     {"stash",                   TOK_STASH},
+    {"under",                   TOK_UNDER},
+    {"shove",                   TOK_SHOVE},
+    {"slots",                   TOK_SLOTS},
     {"using",                   TOK_USING},
+    {"done.",                   TOK_DONE},
+    {"yank",                    TOK_YANK},
+    {"into",                    TOK_INTO},
     {"moan",                    TOK_MOAN},
+    {"dump",                    TOK_DUMP},
+    {"chop",                    TOK_CHOP},
     {"yell",                    TOK_YELL},
+    {"from",                    TOK_FROM},
     {"with",                    TOK_WITH},
+    {"grab",                    TOK_GRAB},
     {"gets",                    TOK_GETS},
     {"hits",                    TOK_HITS},
     {"crap",                    TOK_CRAP},
+    {"not",                     TOK_NOT},
+    {"and",                     TOK_AND},
     {"is",                      TOK_IS},
     {"if",                      TOK_IF},
+    {"or",                      TOK_OR},
+    {"by",                      TOK_BY},
+    {"at",                      TOK_AT},
 };
 
 static const int NUM_KEYWORDS = sizeof(keywords) / sizeof(keywords[0]);
@@ -217,8 +245,13 @@ static void lex_line(const char *line, int lineno, TokenList *list) {
             continue;
         }
 
-        /* Skip unknown characters */
-        p++;
+        /* Skip unknown characters (advance full UTF-8 codepoint) */
+        {
+            unsigned char c = (unsigned char)*p++;
+            if (c >= 0xF0)      { if (*p) p++; if (*p) p++; if (*p) p++; }
+            else if (c >= 0xE0) { if (*p) p++; if (*p) p++; }
+            else if (c >= 0xC0) { if (*p) p++; }
+        }
     }
 }
 
@@ -271,6 +304,9 @@ const char *token_type_name(TokenType t) {
     case TOK_COLDER_THAN:    return "COLDER_THAN";
     case TOK_AS_HOT_AS:      return "AS_HOT_AS";
     case TOK_IS_FRIGID:      return "IS_FRIGID";
+    case TOK_AND:            return "AND";
+    case TOK_OR:             return "OR";
+    case TOK_NOT:            return "NOT";
     case TOK_IF:             return "IF";
     case TOK_CONSENTS:       return "CONSENTS";
     case TOK_HARD_LIMIT:     return "HARD_LIMIT";
@@ -278,6 +314,11 @@ const char *token_type_name(TokenType t) {
     case TOK_SPREE_START:    return "SPREE_START";
     case TOK_BUSTED_WHEN:    return "BUSTED_WHEN";
     case TOK_HITS:           return "HITS";
+    case TOK_ROLL_THE_DICE:  return "ROLL_THE_DICE";
+    case TOK_SLOTS:          return "SLOTS";
+    case TOK_GRAB:           return "GRAB";
+    case TOK_AT:             return "AT";
+    case TOK_BODY_COUNT_OF:  return "BODY_COUNT_OF";
     case TOK_MY_KINK_IS:     return "MY_KINK_IS";
     case TOK_AND_IT_TAKES:   return "AND_IT_TAKES";
     case TOK_FINISH_WITH:    return "FINISH_WITH";
@@ -287,6 +328,26 @@ const char *token_type_name(TokenType t) {
     case TOK_SCREAM:         return "SCREAM";
     case TOK_YELL:           return "YELL";
     case TOK_SEDUCE:         return "SEDUCE";
+    case TOK_RUN_A_TRAIN_ON: return "RUN_A_TRAIN_ON";
+    case TOK_DONE:           return "DONE";
+    case TOK_SHOVE:          return "SHOVE";
+    case TOK_INTO:           return "INTO";
+    case TOK_YANK:           return "YANK";
+    case TOK_FROM:           return "FROM";
+    case TOK_CHOP:           return "CHOP";
+    case TOK_BY:             return "BY";
+    case TOK_STITCH:         return "STITCH";
+    case TOK_SQRT:           return "SQRT";
+    case TOK_ABS:            return "ABS";
+    case TOK_POW:            return "POW";
+    case TOK_FLOOR:          return "FLOOR";
+    case TOK_CEIL:           return "CEIL";
+    case TOK_TO_NUM:         return "TO_NUM";
+    case TOK_TO_STR:         return "TO_STR";
+    case TOK_ENTRIES:        return "ENTRIES";
+    case TOK_UNDER:          return "UNDER";
+    case TOK_DEVOUR:         return "DEVOUR";
+    case TOK_DUMP:           return "DUMP";
     case TOK_OH_GOD:         return "OH_GOD";
     case TOK_HARDER:         return "HARDER";
     case TOK_NO_QUESTIONS:   return "NO_QUESTIONS";

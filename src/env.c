@@ -1,5 +1,6 @@
 #include "env.h"
 #include "error.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -55,7 +56,7 @@ void env_set(Env *env, const char *key, Value val) {
             return;
         }
     }
-    error_oom(); /* table full */
+    error_too_many_vars(0); /* table full */
 }
 
 Value *env_get(Env *env, const char *key) {

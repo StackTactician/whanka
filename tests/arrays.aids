@@ -1,0 +1,32 @@
+enough foreplay
+
+// Declare array with 5 slots
+stash crew with 5 slots
+
+// Set elements
+crew at 0 gets "alpha"
+crew at 1 gets "bravo"
+crew at 2 gets "charlie"
+crew at 3 gets 42
+crew at 4 gets 99
+
+// Get elements
+yell grab crew at 0
+yell grab crew at 1
+yell grab crew at 2
+yell grab crew at 3
+
+// Length
+yell body count of crew
+
+// Print whole array
+yell crew
+
+// Loop over array
+moan i is 0
+go on a spree:
+    yell grab crew at i jacked up by " is in the crew"
+    i gets i jacked up by 1
+busted when i hits body count of crew
+
+I came.

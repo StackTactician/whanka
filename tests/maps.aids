@@ -1,0 +1,23 @@
+enough foreplay
+
+// Map basics
+stash m with entries
+m under "name" gets "Whanka"
+m under "version" gets 3
+m under "cool" gets 1
+
+yell grab m under "name"
+yell grab m under "version"
+yell grab m under "cool"
+
+// Missing key returns none
+yell grab m under "missing"
+
+// Body count of map
+yell body count of m
+
+// Update existing key
+m under "version" gets 4
+yell grab m under "version"
+
+I came.

@@ -6,10 +6,13 @@
 
 /* --- Parser state --- */
 
+#define MAX_PARSE_DEPTH 512
+
 typedef struct {
     Token *tokens;
     int count;
     int pos;
+    int depth;
 } Parser;
 
 static Token *peek(Parser *p) {
@@ -85,6 +88,161 @@ static ASTNode *parse_primary(Parser *p) {
         return n;
     }
 
+    /* roll the dice EXPR — random number */
+    if (t->type == TOK_ROLL_THE_DICE) {
+        advance(p);
+        skip_flavor(p);
+        ASTNode *max = parse_primary(p);
+        ASTNode *n = node_new(NODE_RANDOM, t->line);
+        n->random_expr.max = max;
+        return n;
+    }
+
+    /* grab X at EXPR — array/string access; grab X under KEY — map get */
+    if (t->type == TOK_GRAB) {
+        advance(p);
+        skip_flavor(p);
+        Token *name = expect(p, TOK_IDENT);
+        if (at(p, TOK_UNDER)) {
+            advance(p);
+            skip_flavor(p);
+            ASTNode *key = parse_primary(p);
+            ASTNode *n = node_new(NODE_MAP_GET, t->line);
+            n->map_get.name = strdup(name->text);
+            if (!n->map_get.name) error_oom();
+            n->map_get.key = key;
+            return n;
+        }
+        expect(p, TOK_AT);
+        skip_flavor(p);
+        ASTNode *index = parse_primary(p);
+        ASTNode *n = node_new(NODE_ARRAY_GET, t->line);
+        n->array_get.name = strdup(name->text);
+        if (!n->array_get.name) error_oom();
+        n->array_get.index = index;
+        return n;
+    }
+
+    /* body count of X — array/string/map length */
+    if (t->type == TOK_BODY_COUNT_OF) {
+        advance(p);
+        skip_flavor(p);
+        Token *name = expect(p, TOK_IDENT);
+        ASTNode *n = node_new(NODE_ARRAY_LENGTH, t->line);
+        n->array_length.name = strdup(name->text);
+        if (!n->array_length.name) error_oom();
+        return n;
+    }
+
+    /* yank from X — array pop */
+    if (t->type == TOK_YANK) {
+        advance(p);
+        skip_flavor(p);
+        expect(p, TOK_FROM);
+        skip_flavor(p);
+        Token *name = expect(p, TOK_IDENT);
+        ASTNode *n = node_new(NODE_ARRAY_POP, t->line);
+        n->array_pop.array_name = strdup(name->text);
+        if (!n->array_pop.array_name) error_oom();
+        return n;
+    }
+
+    /* chop STR by DELIM — string split */
+    if (t->type == TOK_CHOP) {
+        advance(p);
+        skip_flavor(p);
+        ASTNode *str = parse_primary(p);
+        skip_flavor(p);
+        expect(p, TOK_BY);
+        skip_flavor(p);
+        ASTNode *delim = parse_primary(p);
+        ASTNode *n = node_new(NODE_STRING_SPLIT, t->line);
+        n->string_split.str = str;
+        n->string_split.delimiter = delim;
+        return n;
+    }
+
+    /* stitch ARRAY with SEP — string join */
+    if (t->type == TOK_STITCH) {
+        advance(p);
+        skip_flavor(p);
+        ASTNode *arr = parse_primary(p);
+        skip_flavor(p);
+        expect(p, TOK_WITH);
+        skip_flavor(p);
+        ASTNode *sep = parse_primary(p);
+        ASTNode *n = node_new(NODE_STRING_JOIN, t->line);
+        n->string_join.array = arr;
+        n->string_join.separator = sep;
+        return n;
+    }
+
+    /* the square root of X */
+    if (t->type == TOK_SQRT) {
+        advance(p);
+        skip_flavor(p);
+        ASTNode *operand = parse_primary(p);
+        ASTNode *n = node_new(NODE_MATH, t->line);
+        n->math_expr.op = MATH_SQRT;
+        n->math_expr.operand = operand;
+        return n;
+    }
+
+    /* the absolute value of X */
+    if (t->type == TOK_ABS) {
+        advance(p);
+        skip_flavor(p);
+        ASTNode *operand = parse_primary(p);
+        ASTNode *n = node_new(NODE_MATH, t->line);
+        n->math_expr.op = MATH_ABS;
+        n->math_expr.operand = operand;
+        return n;
+    }
+
+    /* the floor of X */
+    if (t->type == TOK_FLOOR) {
+        advance(p);
+        skip_flavor(p);
+        ASTNode *operand = parse_primary(p);
+        ASTNode *n = node_new(NODE_MATH, t->line);
+        n->math_expr.op = MATH_FLOOR;
+        n->math_expr.operand = operand;
+        return n;
+    }
+
+    /* the ceiling of X */
+    if (t->type == TOK_CEIL) {
+        advance(p);
+        skip_flavor(p);
+        ASTNode *operand = parse_primary(p);
+        ASTNode *n = node_new(NODE_MATH, t->line);
+        n->math_expr.op = MATH_CEIL;
+        n->math_expr.operand = operand;
+        return n;
+    }
+
+    /* the number in X — type coercion to number */
+    if (t->type == TOK_TO_NUM) {
+        advance(p);
+        skip_flavor(p);
+        ASTNode *operand = parse_primary(p);
+        ASTNode *n = node_new(NODE_CAST, t->line);
+        n->cast_expr.op = CAST_TO_NUM;
+        n->cast_expr.operand = operand;
+        return n;
+    }
+
+    /* the word for X — type coercion to string */
+    if (t->type == TOK_TO_STR) {
+        advance(p);
+        skip_flavor(p);
+        ASTNode *operand = parse_primary(p);
+        ASTNode *n = node_new(NODE_CAST, t->line);
+        n->cast_expr.op = CAST_TO_STR;
+        n->cast_expr.operand = operand;
+        return n;
+    }
+
     if (t->type == TOK_IDENT) {
         advance(p);
         ASTNode *n = node_new(NODE_VAR_REF, t->line);
@@ -104,6 +262,9 @@ static ASTNode *parse_primary(Parser *p) {
 }
 
 static ASTNode *parse_expr(Parser *p) {
+    if (++p->depth > MAX_PARSE_DEPTH) {
+        error_syntax("nesting too deep", peek(p)->line);
+    }
     skip_flavor(p);
 
     /* Function call expression: get freaky with NAME using ARG, ARG */
@@ -136,16 +297,17 @@ static ASTNode *parse_expr(Parser *p) {
             }
         }
         skip_flavor(p);
+        p->depth--;
         return n;
     }
 
     ASTNode *left = parse_primary(p);
     skip_flavor(p);
 
-    /* Arithmetic: left OP right */
-    if (at(p, TOK_JACKED_UP_BY) || at(p, TOK_CUT_DOWN_BY) ||
-        at(p, TOK_BLOWN_UP_BY) || at(p, TOK_SPLIT_WITH) ||
-        at(p, TOK_LEFTOVER_FROM)) {
+    /* Arithmetic: left OP right (chained left-to-right) */
+    while (at(p, TOK_JACKED_UP_BY) || at(p, TOK_CUT_DOWN_BY) ||
+           at(p, TOK_BLOWN_UP_BY) || at(p, TOK_SPLIT_WITH) ||
+           at(p, TOK_LEFTOVER_FROM) || at(p, TOK_POW)) {
         Token *op_tok = advance(p);
         skip_flavor(p);
         ASTNode *right = parse_primary(p);
@@ -160,12 +322,15 @@ static ASTNode *parse_expr(Parser *p) {
         case TOK_BLOWN_UP_BY:   n->arith.op = OP_MUL; break;
         case TOK_SPLIT_WITH:    n->arith.op = OP_DIV; break;
         case TOK_LEFTOVER_FROM: n->arith.op = OP_MOD; break;
+        case TOK_POW:           n->arith.op = OP_POW; break;
         default: break;
         }
+
+        left = n;
         skip_flavor(p);
-        return n;
     }
 
+    p->depth--;
     return left;
 }
 
@@ -175,7 +340,8 @@ static ASTNode *parse_comparison(Parser *p) {
     skip_flavor(p);
 
     if (at(p, TOK_HOTTER_THAN) || at(p, TOK_COLDER_THAN) ||
-        at(p, TOK_AS_HOT_AS) || at(p, TOK_IS_FRIGID)) {
+        at(p, TOK_AS_HOT_AS) || at(p, TOK_IS_FRIGID) ||
+        at(p, TOK_HITS)) {
         Token *op_tok = advance(p);
         skip_flavor(p);
 
@@ -187,6 +353,7 @@ static ASTNode *parse_comparison(Parser *p) {
         case TOK_COLDER_THAN: n->compare.op = CMP_LT; break;
         case TOK_AS_HOT_AS:   n->compare.op = CMP_EQ; break;
         case TOK_IS_FRIGID:   n->compare.op = CMP_ZERO; break;
+        case TOK_HITS:        n->compare.op = CMP_GTE; break;
         default: break;
         }
 
@@ -199,6 +366,57 @@ static ASTNode *parse_comparison(Parser *p) {
         return n;
     }
 
+    return left;
+}
+
+/* --- Boolean logic parsing (lowest precedence above comparison) --- */
+
+static ASTNode *parse_not(Parser *p) {
+    skip_flavor(p);
+    if (at(p, TOK_NOT)) {
+        Token *op_tok = advance(p);
+        skip_flavor(p);
+        ASTNode *operand = parse_not(p);  /* right-recursive for chained not */
+        ASTNode *n = node_new(NODE_LOGIC, op_tok->line);
+        n->logic.op = LOGIC_NOT;
+        n->logic.left = operand;
+        n->logic.right = NULL;
+        return n;
+    }
+    return parse_comparison(p);
+}
+
+static ASTNode *parse_and(Parser *p) {
+    ASTNode *left = parse_not(p);
+    skip_flavor(p);
+    while (at(p, TOK_AND)) {
+        Token *op_tok = advance(p);
+        skip_flavor(p);
+        ASTNode *right = parse_not(p);
+        ASTNode *n = node_new(NODE_LOGIC, op_tok->line);
+        n->logic.op = LOGIC_AND;
+        n->logic.left = left;
+        n->logic.right = right;
+        left = n;
+        skip_flavor(p);
+    }
+    return left;
+}
+
+static ASTNode *parse_or(Parser *p) {
+    ASTNode *left = parse_and(p);
+    skip_flavor(p);
+    while (at(p, TOK_OR)) {
+        Token *op_tok = advance(p);
+        skip_flavor(p);
+        ASTNode *right = parse_and(p);
+        ASTNode *n = node_new(NODE_LOGIC, op_tok->line);
+        n->logic.op = LOGIC_OR;
+        n->logic.left = left;
+        n->logic.right = right;
+        left = n;
+        skip_flavor(p);
+    }
     return left;
 }
 
@@ -251,14 +469,36 @@ static ASTNode *parse_statement(Parser *p) {
         return n;
     }
 
-    /* stash X with EXPR */
+    /* stash X with entries | stash X with EXPR [slots] | stash X with EXPR */
     if (t->type == TOK_STASH) {
         advance(p);
         Token *name = expect(p, TOK_IDENT);
         expect(p, TOK_WITH);
         skip_flavor(p);
+
+        /* Check for "entries" → map declaration */
+        if (at(p, TOK_ENTRIES)) {
+            advance(p);
+            skip_flavor(p);
+            ASTNode *n = node_new(NODE_MAP_DECL, t->line);
+            n->map_decl.name = strdup(name->text);
+            if (!n->map_decl.name) error_oom();
+            return n;
+        }
+
         ASTNode *val = parse_expr(p);
         skip_flavor(p);
+
+        /* Check for "slots" → array declaration */
+        if (at(p, TOK_SLOTS)) {
+            advance(p);
+            skip_flavor(p);
+            ASTNode *n = node_new(NODE_ARRAY_DECL, t->line);
+            n->array_decl.name = strdup(name->text);
+            if (!n->array_decl.name) error_oom();
+            n->array_decl.size = val;
+            return n;
+        }
 
         ASTNode *n = node_new(NODE_ASSIGN, t->line);
         n->assign.name = strdup(name->text);
@@ -267,8 +507,48 @@ static ASTNode *parse_statement(Parser *p) {
         return n;
     }
 
-    /* X gets EXPR, harder. (compound assignment / reassignment) */
+    /* X under KEY gets VAL | X at EXPR gets EXPR | X gets EXPR */
     if (t->type == TOK_IDENT) {
+        /* Look ahead for 'under' → map set: X under KEY gets VAL */
+        if (p->pos + 1 < p->count && p->tokens[p->pos + 1].type == TOK_UNDER) {
+            Token *name = advance(p);
+            advance(p); /* skip 'under' */
+            skip_flavor(p);
+            ASTNode *key = parse_expr(p);
+            skip_flavor(p);
+            expect(p, TOK_GETS);
+            skip_flavor(p);
+            ASTNode *val = parse_expr(p);
+            skip_flavor(p);
+
+            ASTNode *n = node_new(NODE_MAP_SET, t->line);
+            n->map_set.name = strdup(name->text);
+            if (!n->map_set.name) error_oom();
+            n->map_set.key = key;
+            n->map_set.value = val;
+            return n;
+        }
+
+        /* Look ahead for 'at' → array set: X at EXPR gets EXPR */
+        if (p->pos + 1 < p->count && p->tokens[p->pos + 1].type == TOK_AT) {
+            Token *name = advance(p);
+            advance(p); /* skip 'at' */
+            skip_flavor(p);
+            ASTNode *index = parse_expr(p);
+            skip_flavor(p);
+            expect(p, TOK_GETS);
+            skip_flavor(p);
+            ASTNode *val = parse_expr(p);
+            skip_flavor(p);
+
+            ASTNode *n = node_new(NODE_ARRAY_SET, t->line);
+            n->array_set.name = strdup(name->text);
+            if (!n->array_set.name) error_oom();
+            n->array_set.index = index;
+            n->array_set.value = val;
+            return n;
+        }
+
         /* Look ahead for 'gets' */
         if (p->pos + 1 < p->count && p->tokens[p->pos + 1].type == TOK_GETS) {
             Token *name = advance(p);
@@ -315,19 +595,11 @@ static ASTNode *parse_statement(Parser *p) {
     if (t->type == TOK_IF) {
         advance(p);
         skip_flavor(p);
-        ASTNode *cond = parse_comparison(p);
+        ASTNode *cond = parse_or(p);
         skip_flavor(p);
 
-        /* optional "consents to being" already consumed as part of comparison? No.
-           The syntax is: if EXPR consents to being CMPOP EXPR
-           But we parsed the comparison above. The "consents to being" is flavor after the condition expr. */
         if (at(p, TOK_CONSENTS)) advance(p);
         skip_flavor(p);
-
-        /* Re-parse: the condition is actually parsed differently.
-           "if X consents to being hotter than Y" means:
-           condition = X hotter than Y
-           But we might have parsed X as the full comparison already. Let's check. */
 
         ASTNode *n = node_new(NODE_IF, t->line);
         n->if_stmt.condition = cond;
@@ -355,28 +627,22 @@ static ASTNode *parse_statement(Parser *p) {
         return n;
     }
 
-    /* go on a spree: ... busted when X hits N */
+    /* go on a spree: ... busted when BOOL_EXPR */
     if (t->type == TOK_SPREE_START) {
         advance(p);
         skip_flavor(p);
 
         ASTNode *n = node_new(NODE_LOOP, t->line);
-        n->loop.var = NULL;
-        n->loop.limit = NULL;
+        n->loop.condition = NULL;
 
         parse_body(p, &n->loop.body, &n->loop.body_count,
                    TOK_BUSTED_WHEN, TOK_BUSTED_WHEN);
 
-        /* busted when X hits N */
+        /* busted when BOOL_EXPR (general condition) */
         if (at(p, TOK_BUSTED_WHEN)) {
             advance(p);
             skip_flavor(p);
-            Token *var = expect(p, TOK_IDENT);
-            n->loop.var = strdup(var->text);
-            if (!n->loop.var) error_oom();
-            expect(p, TOK_HITS);
-            skip_flavor(p);
-            n->loop.limit = parse_expr(p);
+            n->loop.condition = parse_or(p);
         }
         skip_flavor(p);
         return n;
@@ -446,6 +712,77 @@ static ASTNode *parse_statement(Parser *p) {
         return call;
     }
 
+    /* shove EXPR into IDENT — array push */
+    if (t->type == TOK_SHOVE) {
+        advance(p);
+        skip_flavor(p);
+        ASTNode *val = parse_expr(p);
+        skip_flavor(p);
+        expect(p, TOK_INTO);
+        skip_flavor(p);
+        Token *name = expect(p, TOK_IDENT);
+        skip_flavor(p);
+
+        ASTNode *n = node_new(NODE_ARRAY_PUSH, t->line);
+        n->array_push.value = val;
+        n->array_push.array_name = strdup(name->text);
+        if (!n->array_push.array_name) error_oom();
+        return n;
+    }
+
+    /* devour PATH into VAR — file read */
+    if (t->type == TOK_DEVOUR) {
+        advance(p);
+        skip_flavor(p);
+        ASTNode *path = parse_expr(p);
+        skip_flavor(p);
+        expect(p, TOK_INTO);
+        skip_flavor(p);
+        Token *var = expect(p, TOK_IDENT);
+        skip_flavor(p);
+
+        ASTNode *n = node_new(NODE_FILE_READ, t->line);
+        n->file_read.path = path;
+        n->file_read.var = strdup(var->text);
+        if (!n->file_read.var) error_oom();
+        return n;
+    }
+
+    /* dump CONTENT into PATH — file write */
+    if (t->type == TOK_DUMP) {
+        advance(p);
+        skip_flavor(p);
+        ASTNode *content = parse_expr(p);
+        skip_flavor(p);
+        expect(p, TOK_INTO);
+        skip_flavor(p);
+        ASTNode *path = parse_expr(p);
+        skip_flavor(p);
+
+        ASTNode *n = node_new(NODE_FILE_WRITE, t->line);
+        n->file_write.content = content;
+        n->file_write.path = path;
+        return n;
+    }
+
+    /* run a train on ITERABLE ... done. — for-each */
+    if (t->type == TOK_RUN_A_TRAIN_ON) {
+        advance(p);
+        skip_flavor(p);
+        ASTNode *iterable = parse_primary(p);
+        skip_flavor(p);
+
+        ASTNode *n = node_new(NODE_FOREACH, t->line);
+        n->foreach.iterable = iterable;
+
+        parse_body(p, &n->foreach.body, &n->foreach.body_count,
+                   TOK_DONE, TOK_DONE);
+
+        if (at(p, TOK_DONE)) advance(p);
+        skip_flavor(p);
+        return n;
+    }
+
     /* seduce the answer out of X */
     if (t->type == TOK_SEDUCE) {
         advance(p);
@@ -467,7 +804,7 @@ static ASTNode *parse_statement(Parser *p) {
 /* --- Top-level parse --- */
 
 ASTNode *parser_parse(TokenList *tokens) {
-    Parser p = { .tokens = tokens->tokens, .count = tokens->count, .pos = 0 };
+    Parser p = { .tokens = tokens->tokens, .count = tokens->count, .pos = 0, .depth = 0 };
 
     skip_flavor(&p);
 
@@ -553,8 +890,7 @@ void ast_free(ASTNode *node) {
         free(node->if_stmt.else_body);
         break;
     case NODE_LOOP:
-        free(node->loop.var);
-        ast_free(node->loop.limit);
+        ast_free(node->loop.condition);
         for (int i = 0; i < node->loop.body_count; i++)
             ast_free(node->loop.body[i]);
         free(node->loop.body);
@@ -590,6 +926,76 @@ void ast_free(ASTNode *node) {
         break;
     case NODE_STRING_LIT:
         free(node->string_lit.value);
+        break;
+    case NODE_LOGIC:
+        ast_free(node->logic.left);
+        ast_free(node->logic.right);
+        break;
+    case NODE_RANDOM:
+        ast_free(node->random_expr.max);
+        break;
+    case NODE_ARRAY_DECL:
+        free(node->array_decl.name);
+        ast_free(node->array_decl.size);
+        break;
+    case NODE_ARRAY_GET:
+        free(node->array_get.name);
+        ast_free(node->array_get.index);
+        break;
+    case NODE_ARRAY_SET:
+        free(node->array_set.name);
+        ast_free(node->array_set.index);
+        ast_free(node->array_set.value);
+        break;
+    case NODE_ARRAY_LENGTH:
+        free(node->array_length.name);
+        break;
+    case NODE_FOREACH:
+        ast_free(node->foreach.iterable);
+        for (int i = 0; i < node->foreach.body_count; i++)
+            ast_free(node->foreach.body[i]);
+        free(node->foreach.body);
+        break;
+    case NODE_FILE_READ:
+        ast_free(node->file_read.path);
+        free(node->file_read.var);
+        break;
+    case NODE_FILE_WRITE:
+        ast_free(node->file_write.content);
+        ast_free(node->file_write.path);
+        break;
+    case NODE_STRING_SPLIT:
+        ast_free(node->string_split.str);
+        ast_free(node->string_split.delimiter);
+        break;
+    case NODE_STRING_JOIN:
+        ast_free(node->string_join.array);
+        ast_free(node->string_join.separator);
+        break;
+    case NODE_ARRAY_PUSH:
+        ast_free(node->array_push.value);
+        free(node->array_push.array_name);
+        break;
+    case NODE_ARRAY_POP:
+        free(node->array_pop.array_name);
+        break;
+    case NODE_MATH:
+        ast_free(node->math_expr.operand);
+        break;
+    case NODE_CAST:
+        ast_free(node->cast_expr.operand);
+        break;
+    case NODE_MAP_DECL:
+        free(node->map_decl.name);
+        break;
+    case NODE_MAP_SET:
+        free(node->map_set.name);
+        ast_free(node->map_set.key);
+        ast_free(node->map_set.value);
+        break;
+    case NODE_MAP_GET:
+        free(node->map_get.name);
+        ast_free(node->map_get.key);
         break;
     }
     free(node);

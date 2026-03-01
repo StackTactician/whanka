@@ -1,0 +1,19 @@
+enough foreplay
+
+// For-each over array
+stash fruits with 0 slots
+shove "apple" into fruits
+shove "banana" into fruits
+shove "cherry" into fruits
+
+run a train on fruits
+  yell each
+done.
+
+// For-each over string with tally
+moan word is "hey"
+run a train on word
+  yell tally jacked up by each
+done.
+
+I came.
