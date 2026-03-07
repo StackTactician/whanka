@@ -11,7 +11,7 @@ SOURCES = $(SRCDIR)/main.c \
           $(SRCDIR)/env.c \
           $(SRCDIR)/error.c
 
-TARGET = whanka
+TARGET = Whanka
 
 all: $(TARGET)
 

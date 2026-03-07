@@ -1,7 +1,7 @@
 enough foreplay
 
 // Write to file
-dump "hello from whanka!" into "tests/_test_output.txt"
+dump "hello from Whanka!" into "tests/_test_output.txt"
 
 // Read it back
 devour "tests/_test_output.txt" into content

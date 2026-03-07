@@ -44,7 +44,7 @@ static char *read_file(const char *path) {
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        fprintf(stderr, "Usage: whanka <file.aids>\n");
+        fprintf(stderr, "Usage: Whanka <file.aids>\n");
         fprintf(stderr, "  You forgot the file, you absolute walnut.\n");
         return 1;
     }
