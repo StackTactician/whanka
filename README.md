@@ -1,85 +1,94 @@
 # Whanka
 
-A Turing-complete esoteric programming language with passive-aggressive, sexually-charged, crime-themed English-like syntax.
+Whanka is a small, Turing-complete esoteric programming language with provocative English-like syntax.
 
-Written in C. No dependencies. Single binary.
+The interpreter is written in C11, has no external dependencies, and builds as a single executable.
 
-## Quick Start
+## Project Rename
+
+This project now uses the executable name `Whanka` (uppercase `W`) across build scripts, examples, and usage output.
+
+## Features
+
+- Minimal C implementation
+- Dynamic values (numbers and strings)
+- Variables, expressions, conditionals, loops, and user-defined functions
+- Simple file I/O and map-like operations
+- `.aids` source file extension
+
+## Repository Layout
+
+- `src/` - interpreter source code
+- `tests/` - sample and behavior test programs (`.aids`)
+- `DOCS.md` - language reference and syntax guide
+- `build.sh` / `build.bat` - cross-platform build scripts
+- `Makefile` - build with `make`
+
+## Build
+
+### Linux / macOS / Termux
 
 ```bash
-# Build
-./build.sh        # Linux / macOS / Termux
-build.bat          # Windows
+./build.sh
+```
 
-# Run
-whanka hello.aids
+or:
+
+```bash
+make
+```
+
+### Windows
+
+```bat
+build.bat
+```
+
+### Manual Build
+
+```bash
+gcc -Wall -Wextra -std=c11 -O2 -o Whanka src/*.c -lm
+```
+
+## Run
+
+```bash
+Whanka tests/hello.aids
 ```
 
 ## Hello World
 
-```
+```text
 enough foreplay
 
-yell "hello world, you degenerate"
+yell "hello world"
 
 I came.
 regards.
 ```
 
-## FizzBuzz
+## Development Workflow
 
-```
-enough foreplay
+1. Build the interpreter.
+2. Run any program from `tests/`.
+3. Add or update `.aids` programs to verify language behavior.
 
-moan i is 1
-
-go on a spree:
-    moan mod3 is i leftover from 3
-    moan mod5 is i leftover from 5
-
-    if mod3 as hot as 0
-        if mod5 as hot as 0
-            yell "FizzBuzz"
-        hard limit:
-            yell "Fizz"
-        boundaries respected.
-    hard limit:
-        if mod5 as hot as 0
-            yell "Buzz"
-        hard limit:
-            scream i
-        boundaries respected.
-    boundaries respected.
-
-    i gets i jacked up by 1
-busted when i hits 101
-
-I came.
-regards.
-```
-
-## Building From Source
-
-Requires any C11 compiler (gcc, clang, MSVC).
+Example:
 
 ```bash
-# Using make
 make
-
-# Using build script (also installs to PATH)
-./build.sh
-
-# Manual
-gcc -Wall -Wextra -std=c11 -O2 -o whanka src/*.c -lm
+./Whanka tests/fizzbuzz.aids
 ```
 
-## Documentation
+## Language Documentation
 
-See [DOCS.md](DOCS.md) for the full language reference.
+See [DOCS.md](DOCS.md) for:
 
-## File Extension
-
-All Whanka source files use the `.aids` extension.
+- Core syntax
+- Expressions and operators
+- Control flow
+- Functions
+- Runtime errors and constraints
 
 ## License
 

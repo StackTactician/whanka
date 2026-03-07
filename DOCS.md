@@ -1,5 +1,21 @@
 # Whanka Language Reference
 
+## Running Programs
+
+Build the interpreter first, then run a `.aids` file with:
+
+```bash
+Whanka path/to/program.aids
+```
+
+If your binary is in the project root from `make`, run:
+
+```bash
+./Whanka tests/hello.aids
+```
+
+---
+
 ## Program Structure
 
 Every Whanka program must begin with `enough foreplay` and end with `I came.` followed by `regards.`

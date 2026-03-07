@@ -2,9 +2,9 @@
 setlocal
 
 set SRC=src\main.c src\lexer.c src\parser.c src\interpreter.c src\value.c src\env.c src\error.c
-set OUT=pardon.exe
+set OUT=Whanka.exe
 
-echo Building Pardon language interpreter...
+echo Building Whanka language interpreter...
 
 :: Try MSVC first (cl.exe)
 where cl >nul 2>nul
@@ -38,7 +38,7 @@ exit /b 1
 echo Built: %OUT%
 
 :: Install to user PATH
-set "INSTALL_DIR=%USERPROFILE%\.pardon\bin"
+set "INSTALL_DIR=%USERPROFILE%\.Whanka\bin"
 if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
 copy /Y %OUT% "%INSTALL_DIR%\%OUT%" >nul
 echo Installed: %INSTALL_DIR%\%OUT%
@@ -59,7 +59,7 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo Done. Run from anywhere: pardon ^<file.aids^>
+echo Done. Run from anywhere: Whanka ^<file.aids^>
 
 :: Clean up MSVC artifacts
 del *.obj 2>nul
